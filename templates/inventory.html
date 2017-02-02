@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+{% block title %}Inventory{% endblock %}
+{% block body %}
+<!---SHOW All items-->
+{% if items==[]%}
+<p> There are currently no items in the catalog. </p>
+<div align="center">
+{% else %}
+<div class="product">
+	{% for item in items %}
+   	<a href={{url_for('product', product_id = item.id)}}>
+      	<p>{{item.name}}</p>
+      	<table style="width:100%">
+      	<tr> <td><img src={{item.photo}} height="300"></img></td>
+      		<td>	<p> {{item.description}} </p>
+					
+			</td>
+		</tr>
+		</table>
+  	</a>
+  	{% endfor %}
+</div>
+
+{% endif %}
+{% endblock %}
