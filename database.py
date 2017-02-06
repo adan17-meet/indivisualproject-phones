@@ -14,6 +14,8 @@ class Customer(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(255))
     address = Column(String(255))
+    
+    city = Column(String(255))
     email = Column(String(255), unique=True)
     password_hash = Column(String(255))
     shoppingCart = relationship("ShoppingCart", uselist=False, back_populates="customer")

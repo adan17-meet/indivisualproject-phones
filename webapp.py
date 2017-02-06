@@ -77,9 +77,11 @@ def newCustomer():
         name = request.form['name']
         email = request.form['email']
         password = request.form['password']
+      
+        city = request.form['city']
         address = request.form['address']
         if name is None or email is None or password is None or 'file' not in request.files:
-            flash("Your form is missing arguments")
+            flash("Fill the unfilled boxes")
             return redirect(url_for('newCustomer'))
         file = request.files['file']
         if file.filename == '':
@@ -89,7 +91,7 @@ def newCustomer():
             flash("A user with this email address already exists")
             return redirect(url_for('newCustomer'))
         if file and allowed_file(file.filename):
-            customer = Customer(name = name, email=email, address = address)
+            customer = Customer(name = name, email=email, address = address, city = city)
             customer.hash_password(password)
             session.add(customer)
             session.commit()
@@ -100,10 +102,10 @@ def newCustomer():
             shoppingCart = ShoppingCart(customer=customer)
             session.add(shoppingCart)
             session.commit()
-            flash("User Created Successfully!")
+            flash("Welcome to our website!")
             return redirect(url_for('inventory'))
         else:
-        	flash("Please upload either a .jpg, .jpeg, .png, or .gif file.")
+        	flash("Please upload an image")
         	return redirect(url_for('newCustomer'))
     else:
         return render_template('newCustomer.html')
