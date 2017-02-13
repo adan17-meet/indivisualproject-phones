@@ -8,12 +8,12 @@
 <img src={{product.photo}} height="300"></img>
 
 
-<p> {{product.description}} </p>
-<p> {{product.year}} </p>
-<p> {{product.brand}} </p>
-<p> {{product.year}} </p>
-<p> {{product.color}}</p>
+<p> Description: {{product.description}} </p>
+<p> Year: {{product.year}} </p>
+<p> Brand: {{product.brand}} </p>
 
+<p> Color: {{product.color}}</p>
+<p> Price: {{product.price}} </p>
 
 <form action={{url_for('addToCart', product_id = product.id)}} method='post'>
   Quantity:

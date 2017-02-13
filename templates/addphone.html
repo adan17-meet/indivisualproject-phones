@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+{% block title %}Be our new customer!{% endblock %}
+
+{% block body %}
+<div align="center">
+<form action="{{ url_for('newCustomer') }}" method = 'post' enctype=multipart/form-data>
+  Name:<br><br>
+  <input type="text" name="name"><br><br>
+  Description:<br>
+  <input type="text" name="description"><br><br>
+  Year:<br>
+  <input type="text" name="year"><br><br>
+  Brand:<br>
+  <input type="text" name="brand"><br><br>
+  Color:<br><br>
+  <input type="text" name="color"><br><br>
+  Price:<br><br>
+  <input type="text" name="price"><br><br>
+	
+  <input type="submit" value="Create Account">
+</form>
+</div>
+{% endblock %}

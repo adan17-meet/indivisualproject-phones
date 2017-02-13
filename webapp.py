@@ -5,6 +5,7 @@ from werkzeug.utils import secure_filename
 import locale, os
 from datetime import *
 
+
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
 
@@ -31,7 +32,7 @@ def login():
 		email = request.form['email']
 		password = request.form['password']
 		if email is None or password is None:
-			flash('	fill the unfilled boxes')
+			flash('Missing Arguments')
 			return redirect(url_for('login'))
 		if verify_password(email, password):
 			customer = session.query(Customer).filter_by(email=email).one()
@@ -44,7 +45,6 @@ def login():
 			
 			flash('Incorrect username/password combination')
 			return redirect(url_for('login'))
-
 
 
 @app.route('/inventory')
@@ -72,8 +72,7 @@ def newCustomer():
       	print("hello")
       	print(birthday)
       	print(type(birthday))
-      	bday = datetime(year=(int)(birthday[0]), month=(int)(birthday[1]), day=(int)(birthday[2]))
-        city = request.form['city']
+      	city = request.form['city']
         address = request.form['address']
         if name is None or email is None or password is None or city is None or birthday is None or 'file' not in request.files:
             flash("Fill the unfilled boxes")
@@ -105,16 +104,76 @@ def newCustomer():
     else:
         return render_template('newCustomer.html')
 
-
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 @app.route("/product/<int:product_id>")
 def product(product_id):
 	product = session.query(Product).filter_by(id=product_id).one()
 	return render_template('product.html', product=product)
 
+@app.route("/product/<int:product_id>/addToCart", methods = ['POST'])
+def addToCart(product_id):
+	if 'id' not in login_session:
+		flash("You must be logged in to perform this action")
+		return redirect(url_for('login'))
+	quantity = request.form['quantity']
+	product = session.query(Product).filter_by(id=product_id).one()
+	shoppingCart = session.query(ShoppingCart).filter_by(customer_id=login_session['id']).one()
+	# If this item is already in the shopping cart, just update the quantity
+	if product.name in [item.product.name for item in shoppingCart.products]:
+		assoc = session.query(ShoppingCartAssociation).filter_by(shoppingCart=shoppingCart) \
+			.filter_by(product=product).one()
+		assoc.quantity = int(assoc.quantity) + int(quantity)
+		flash("Successfully added to Shopping Cart")
+		return redirect(url_for('shoppingCart'))
+	else:
+		a = ShoppingCartAssociation(product=product, quantity=quantity)
+		shoppingCart.products.append(a)
+		session.add_all([a, product, shoppingCart])
+		session.commit()
+		flash("Successfully added to Shopping Cart")
+		return redirect(url_for('shoppingCart'))
+
+@app.route("/shoppingCart")
+def shoppingCart():
+	if 'id' not in login_session:
+		flash("You must be logged in to perform this action")
+		return redirect(url_for('login'))
+	shoppingCart = session.query(ShoppingCart).filter_by(customer_id=login_session['id']).one()
+	return render_template('shoppingCart.html', shoppingCart=shoppingCart)
+
+@app.route("/removeFromCart/<int:product_id>", methods = ['POST'])
+def removeFromCart(product_id):
+	if 'id' not in login_session:
+		flash("You must be logged in to perform this action")
+		return redirect(url_for('login'))
+	shoppingCart = session.query(ShoppingCart).filter_by(customer_id=login_session['id']).one()
+	association = session.query(ShoppingCartAssociation).filter_by(shoppingCart=shoppingCart).filter_by(product_id=product_id).one()
+	session.delete(association)
+	session.commit()
+	flash("Item deleted successfully")
 	return redirect(url_for('shoppingCart'))
 
-
+@app.route("/updateQuantity/<int:product_id>", methods = ['POST'])
+def updateQuantity(product_id):
+	if 'id' not in login_session:
+		flash("You must be logged in to perform this action")
+		return redirect(url_for('login'))
+	quantity = request.form['quantity']
+	if quantity == 0:
+		return removeFromCart(product_id)
+	if quantity < 0:
+		flash("Can't store negative quantities because that would be silly.")
+		return redirect(url_for('shoppingCart'))
+	shoppingCart = session.query(ShoppingCart).filter_by(customer_id=login_session['id']).one()
+	assoc = session.query(ShoppingCartAssociation).filter_by(shoppingCart=shoppingCart).filter_by(product_id=product_id).one()
+	assoc.quantity = quantity
+	session.add(assoc)
+	session.commit()
+	flash("Quantity Updated Successfully")
+	return redirect(url_for('shoppingCart'))
 
 @app.route("/checkout", methods = ['GET', 'POST'])
 def checkout():
@@ -125,7 +184,6 @@ def checkout():
 	if request.method == 'POST':
 		order = Order(customer_id=login_session['id'], confirmation=generateConfirmationNumber())
 		order.total = calculateTotal(shoppingCart)
-		# Remove items from shopping cart and add them to an order
 		for item in shoppingCart.products:
 			assoc = OrdersAssociation(product=item.product, product_qty=item.quantity)
 			order.products.append(assoc)
@@ -136,6 +194,23 @@ def checkout():
 	elif request.method == 'GET':
 		return render_template('checkout.html', shoppingCart=shoppingCart, total="%.2f" % calculateTotal(shoppingCart))
 
+def calculateTotal(shoppingCart):
+	total = 0.0
+	for item in shoppingCart.products:
+		total += item.quantity * float(item.product.price)
+	return total
+
+def generateConfirmationNumber():
+	return "".join(random.choice(string.ascii_uppercase + string.digits) for x in xrange(16))
+
+@app.route("/confirmation/<confirmation>")
+def confirmation(confirmation):
+	if 'id' not in login_session:
+		flash("You must be logged in to perform this action")
+		return redirect(url_for('login'))
+	order = session.query(Order).filter_by(confirmation=confirmation).one()
+	photo_path = url_for('uploaded_file', filename=order.customer.photo)
+	return render_template('confirmation.html', order=order, photo_path=photo_path)
 
 @app.route('/logout')
 def logout():
