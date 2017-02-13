@@ -1,15 +1,23 @@
 <!doctype html>
 <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
 <title></title>
+<div align="center">
 <font size="4" color="white">
 <div class=page>
 	<h1>Cell Express</h1>
 	</font>
 	<font size="3" color="white">
+	<div align="left">
 	<h2>{% block title %}{% endblock %}</h2>
   	<div class=metanav>
+		
 		<div class="g-signin2" data-onsuccess="onSignIn"></div>
-		<a href="{{ url_for('inventory') }}">All Phones</a> || <a href="{{ url_for('login') }}">log in</a> || <a href="{{ url_for('logout') }}">log out</a>
+			<a href="{{ url_for('inventory') }}">All Phones</a> 
+			| <a href="{{ url_for('login') }}">log in</a> 
+			| <a href="{{ url_for('logout') }}">log out</a> 
+			
+		</div>
+			
   	</div>
 	{% for message in get_flashed_messages() %}
 	<div class=flash>{{ message }}</div>
@@ -17,4 +25,5 @@
 
 	{% block body %}{% endblock %}
 </div>
+
 </font>

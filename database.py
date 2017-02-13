@@ -1,8 +1,9 @@
 
 
-from sqlalchemy import Column,Integer,String, DateTime, ForeignKey, Float
+from sqlalchemy import Column,Integer,String, DateTime, ForeignKey, Float, Date
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
+from passlib.apps import custom_app_context as pwd_context
 from sqlalchemy import create_engine, func
 
 Base = declarative_base()
@@ -14,18 +15,18 @@ class Customer(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(255))
     address = Column(String(255))
-    
+    birthday = Column(Date)
     city = Column(String(255))
     email = Column(String(255), unique=True)
-    password_hash = Column(String(255))
+    password= Column(String(255))
     shoppingCart = relationship("ShoppingCart", uselist=False, back_populates="customer")
     orders = relationship("Order", back_populates="customer")
 
     def hash_password(self, password):
-        self.password_hash = pwd_context.encrypt(password)
+        self.password = pwd_context.encrypt(password)
 
     def verify_password(self, password):
-        return pwd_context.verify(password, self.password_hash)
+        return pwd_context.verify(password, self.password)
 
 class ShoppingCart(Base):
     __tablename__ = 'shoppingCart'
@@ -33,6 +34,17 @@ class ShoppingCart(Base):
     customer_id = Column(Integer, ForeignKey('customer.id'))
     customer = relationship("Customer", back_populates="shoppingCart")
     products = relationship("ShoppingCartAssociation", back_populates="shoppingCart")
+
+
+
+
+
+
+
+
+
+
+
 
 
 class Order(Base):

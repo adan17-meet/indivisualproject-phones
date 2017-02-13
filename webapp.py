@@ -3,6 +3,7 @@ from flask import session as login_session
 from database import *
 from werkzeug.utils import secure_filename
 import locale, os
+from datetime import *
 # from werkzeug.contrib.fixers import ProxyFix
 # from flask_dance.contrib.github import make_github_blueprint, github
 
@@ -29,26 +30,6 @@ def allowed_file(filename):
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route('/')
-@app.route('/inventory')
-def inventory():
-	items = session.query(Product).all()
-	return render_template('inventory.html', items=items)
-
-def verify_password(email, password):
-	customer = session.query(Customer).filter_by(email=email).first()
-	if not customer or not customer.verify_password(password):
-		return False
-	g.customer = customer
-	return True
-
-# @app.route('/')
-# def index():
-#     if not github.authorized:
-#         return redirect(url_for("github.login"))
-#     resp = github.get("/user")
-#     assert resp.ok
-#     return "You are @{login} on GitHub".format(login=resp.json()["login"])
-
 @app.route('/login', methods = ['GET', 'POST'])
 def login():
 	if request.method == 'GET':
@@ -71,27 +52,55 @@ def login():
 			flash('Incorrect username/password combination')
 			return redirect(url_for('login'))
 
+
+			
+@app.route('/inventory')
+def inventory():
+	items = session.query(Product).all()
+	return render_template('inventory.html', items=items)
+
+def verify_password(email, password):
+	customer = session.query(Customer).filter_by(email=email).first()
+	if not customer or not customer.verify_password(password):
+		return False
+	g.customer = customer
+	return True
+
+# @app.route('/')
+# def index():
+#     if not github.authorized:
+#         return redirect(url_for("github.login"))
+#     resp = github.get("/user")
+#     assert resp.ok
+#     return "You are @{login} on GitHub".format(login=resp.json()["login"])
+
+
+
 @app.route('/newCustomer', methods = ['GET','POST'])
 def newCustomer():
     if request.method == 'POST':
         name = request.form['name']
         email = request.form['email']
         password = request.form['password']
-      
+        birthday = request.form['birthday']
+      	print("hello")
+      	print(birthday)
+      	print(type(birthday))
+      	bday = datetime(year=(int)(birthday[0]), month=(int)(birthday[1]), day=(int)(birthday[2]))
         city = request.form['city']
         address = request.form['address']
-        if name is None or email is None or password is None or 'file' not in request.files:
+        if name is None or email is None or password is None or city is None or birthday is None or 'file' not in request.files:
             flash("Fill the unfilled boxes")
             return redirect(url_for('newCustomer'))
         file = request.files['file']
         if file.filename == '':
-            flash('No selected file')
+            flash('select a file')
             return redirect(url_for('newCustomer'))
         if session.query(Customer).filter_by(email = email).first() is not None:
             flash("A user with this email address already exists")
             return redirect(url_for('newCustomer'))
         if file and allowed_file(file.filename):
-            customer = Customer(name = name, email=email, address = address, city = city)
+            customer = Customer(name = name, email=email, address = address, birthday = bday, city = city)
             customer.hash_password(password)
             session.add(customer)
             session.commit()
