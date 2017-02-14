@@ -4,6 +4,7 @@ from sqlalchemy import Column,Integer,String, DateTime, ForeignKey, Float
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy import create_engine, func
+from passlib.apps import custom_app_context as pwd_context
 
 Base = declarative_base()
 
@@ -31,15 +32,15 @@ class Customer(Base):
     birthday = Column(DateTime())
     city = Column(String(255))
     email = Column(String(255), unique=True)
-    hash_password= Column(String(255))
+    password= Column(String(255))
     shoppingCart = relationship("ShoppingCart", uselist=False, back_populates="customer")
     orders = relationship("Order", back_populates="customer")
 
     def hash_password(self, password):
-        self.password_hash = pwd_context.encrypt(password)
+        self.password = pwd_context.encrypt(password)
 
     def verify_password(self, password):
-        return pwd_context.verify(password, self.password_hash)
+        return pwd_context.verify(password, self.password)
 
 class ShoppingCart(Base):
     __tablename__ = 'shoppingCart'

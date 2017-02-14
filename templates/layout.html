@@ -9,18 +9,44 @@
 	<font size="3" color="white">
 	<div align="left">
 	<h2>{% block title %}{% endblock %}</h2>
-  	<div class=metanav>
-		
-		<div class="g-signin2" data-onsuccess="onSignIn"></div>
-		
-			<a href="{{ url_for('inventory') }}">All Phones</a> 
-			| <a href="{{ url_for('login') }}">log in</a> 
-			| <a href="{{ url_for('logout') }}">log out</a> 
-			| <a href="{{ url_For('aboutme') }}">About me</a>
-		
-		</div>
-			
-  	</div>
+  	
+
+<style>
+ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: white;
+}
+
+li {
+    float: left;
+}
+
+li a {
+    display: block;
+    color: black;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+
+li a:hover {
+    background-color: #111;
+}
+</style>
+</head>
+<body>
+
+<ul>
+  <li><a href="{{url_for('login')}}">Login</a></li>
+  <li><a href="{{url_for('inventory')}}">All Phones</a></li>
+  <li><a href="{{url_for('logout')}}">Logout</a></li>
+  <li><a href="{{url_for('aboutme')}}">about me</a></li>
+</ul>
+
+
 	{% for message in get_flashed_messages() %}
 	<div class=flash>{{ message }}</div>
 	{% endfor %}
@@ -29,3 +55,5 @@
 </div>
 
 </font>
+</body>
+</html>

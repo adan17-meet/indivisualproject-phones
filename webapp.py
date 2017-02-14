@@ -2,6 +2,7 @@ from flask import Flask, url_for, flash, render_template, redirect, request, g, 
 from flask import session as login_session
 from database import *
 from werkzeug.utils import secure_filename
+from sqlalchemy.ext.declarative import declarative_base
 import locale, os
 from datetime import *
 
@@ -42,7 +43,7 @@ def login():
 			login_session['id'] = customer.id
 			return redirect(url_for('inventory'))
 		else:
-			
+			flash(verify_password(email, password))
 			flash('Incorrect username/password combination')
 			return redirect(url_for('login'))
 
@@ -54,6 +55,7 @@ def inventory():
 
 def verify_password(email, password):
 	customer = session.query(Customer).filter_by(email=email).first()
+	print(customer)
 	if not customer or not customer.verify_password(password):
 		return False
 	g.customer = customer
@@ -61,9 +63,15 @@ def verify_password(email, password):
 
 
 
+@app.route('/aboutme')
+def aboutme():
+	return render_template('aboutme.html')
+
+
 
 @app.route('/newCustomer', methods = ['GET','POST'])
 def newCustomer():
+
     if request.method == 'POST':
         name = request.form['name']
         email = request.form['email']
@@ -74,29 +82,22 @@ def newCustomer():
       	print(type(birthday))
       	city = request.form['city']
         address = request.form['address']
-        if name is None or email is None or password is None or city is None or birthday is None or 'file' not in request.files:
+        bday=datetime(year=(int)(birthday[0:4]), month=(int)(birthday[5:7]), day=(int)(birthday[8:10 ]))
+        customer = Customer(name = name, email = email, birthday = bday, city = city, address = address)
+        customer.hash_password(password)
+        if name is None or email is None or password is None or city is None or birthday is None:
             flash("Fill the unfilled boxes")
             return redirect(url_for('newCustomer'))
         if session.query(Customer).filter_by(email = email).first() is not None:
             flash("A user with this email address already exists")
             return redirect(url_for('newCustomer'))
-        if file and allowed_file(file.filename):
-            customer = Customer(name = name, email=email, address = address, birthday = bday, city = city)
-            customer.hash_password(password)
-            session.add(customer)
-            session.commit()
-            filename = str(customer.id) + "_" + secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            customer.set_photo(filename)
-            session.add(customer)
-            shoppingCart = ShoppingCart(customer=customer)
-            session.add(shoppingCart)
-            session.commit()
-            flash("Welcome to our website!")
-            return redirect(url_for('inventory'))
         else:
-        	
-        	return redirect(url_for('newCustomer'))
+        	session.add(customer)
+        	session.commit()
+        	return redirect(url_for('inventory'))
+  
+        #else:
+        #	return redirect(url_for('inventory'))
     else:
         return render_template('newCustomer.html')
 
@@ -218,33 +219,33 @@ def logout():
 	flash("Logged Out Successfully")
 	return redirect(url_for('inventory'))
 
-@app.route("/product/addphone", methods = ['POST'])
-def addPhone(product_id):
-	if 'id' not in login_session:
-		flash("login to perform this action")
-		return redirect(url_for('login'))
-	name = request.form['name']
-	description = request.form['description']
-	price = request.form['price']
-	year = request.form['year']
-	color = request.form['color']
-	brand = request.form['brand']
+#@app.route("/product/addphone", methods = ['POST'])
+#def addPhone(product_id):
+#	if 'id' not in login_session:
+#		flash("login to perform this action")
+#		return redirect(url_for('login'))
+#	name = request.form['name']
+#	description = request.form['description']
+#	price = request.form['price']
+#	year = request.form['year']
+#	color = request.form['color']
+#	brand = request.form['brand']
 
-	product = session.query(Product).filter_by(id=product_id).one()
-	addPhone = session.query(addphone).filter_by(customer_id=login_session['id']).one()
-	if product.name in [item.product.name for item in Product.name]:
-		assoc = session.query(product.filter_by(addphone = addPhone)
+#	product = session.query(Product).filter_by(id=product_id).one()
+#	addPhone = session.query(addphone).filter_by(customer_id=login_session['id']).one()
+#	if product.name in [item.product.name for item in Product.name]:
+#		assoc = session.query(product.filter_by(addphone = addPhone)
 			
-		assoc.quantity = int(assoc.quantity) + int(quantity)
-		flash("Successfully added!")
-		return redirect(url_for('inventory'))
-	else:
-		a = Product(name=name,brand=brand, year = year, price= price, color=color, description=description)
-		Product.name.append(a)
-		session.add_all([a, name, product])
-		session.commit()
-		flash("Successfully added!")
-		return redirect(url_for('inventory'))
+#		assoc.quantity = int(assoc.quantity) + int(quantity)
+#		flash("Successfully added!")
+#		return redirect(url_for('inventory'))
+#	else:
+#		a = Product(name=name,brand=brand, year = year, price= price, color=color, description=description)
+#		Product.name.append(a)
+#		session.add_all([a, name, product])
+#		session.commit()
+#		flash("Successfully added!")
+#		return redirect(url_for('inventory'))
 
 if __name__ == '__main__':
 	app.run(debug=True)
