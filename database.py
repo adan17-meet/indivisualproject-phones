@@ -8,6 +8,20 @@ from sqlalchemy import create_engine, func
 Base = declarative_base()
 
 
+class Product(Base):
+    __tablename__ = 'product'
+    __table_args__ = {'extend_existing': True}  
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    description = Column(String)
+    year = Column(String)
+    photo = Column(String)
+    brand = Column(String)
+    color = Column(String)
+    price = Column(String)
+    orders = relationship("OrdersAssociation", back_populates="product")
+    shoppingCarts = relationship("ShoppingCartAssociation", back_populates="product")
+
 
 class Customer(Base):
     __tablename__ = 'customer'
@@ -62,21 +76,6 @@ class ShoppingCartAssociation(Base):
     quantity = Column(Integer)
     product = relationship("Product", back_populates="shoppingCarts")
     shoppingCart = relationship("ShoppingCart", back_populates="products")
-
-class Product(Base):
-    __tablename__ = 'product'
-    __table_args__ = {'extend_existing': True}  
-    id = Column(Integer, primary_key=True)
-    name = Column(String)
-    description = Column(String)
-    year = Column(String)
-    photo = Column(String)
-    brand = Column(String)
-    color = Column(String)
-    price = Column(String)
-    orders = relationship("OrdersAssociation", back_populates="product")
-    shoppingCarts = relationship("ShoppingCartAssociation", back_populates="product")
-
 
 
 

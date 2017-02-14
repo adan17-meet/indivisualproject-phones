@@ -1,12 +1,15 @@
 {% extends "layout.html" %}
 {% block title %}Checkout{% endblock %}
 {% block body %}
-<h1> Are you ready to check out, {{shoppingCart.customer.name}}? </h1>
+
+
+<h1> Are you sure you want to check out?, {{shoppingCart.customer.name}}? </h1>
 
 {%if shoppingCart.products == []%}
-<p> There are no items in your shopping cart.</p>
+
+<p> Your shopping cart is empty.</p>
 {% else %}
-<table>
+<table border="3">
   <tr><th> Name</th><th>Price</th><th>Quantity</th><th>total</th></tr>
   {% for item in shoppingCart.products %}
   <tr>

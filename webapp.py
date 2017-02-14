@@ -32,11 +32,11 @@ def login():
 		email = request.form['email']
 		password = request.form['password']
 		if email is None or password is None:
-			flash('Missing Arguments')
+			flash('Fill the unfilled boxes')
 			return redirect(url_for('login'))
 		if verify_password(email, password):
 			customer = session.query(Customer).filter_by(email=email).one()
-			flash('Login Successful, welcome, %s' % customer.name)
+			flash('Login Successful, welcome %s to our website' % customer.name)
 			login_session['name'] = customer.name
 			login_session['email'] = customer.email
 			login_session['id'] = customer.id
@@ -77,10 +77,6 @@ def newCustomer():
         if name is None or email is None or password is None or city is None or birthday is None or 'file' not in request.files:
             flash("Fill the unfilled boxes")
             return redirect(url_for('newCustomer'))
-        file = request.files['file']
-        if file.filename == '':
-            flash('select a file')
-            return redirect(url_for('newCustomer'))
         if session.query(Customer).filter_by(email = email).first() is not None:
             flash("A user with this email address already exists")
             return redirect(url_for('newCustomer'))
@@ -99,7 +95,7 @@ def newCustomer():
             flash("Welcome to our website!")
             return redirect(url_for('inventory'))
         else:
-        	flash("Please upload an image")
+        	
         	return redirect(url_for('newCustomer'))
     else:
         return render_template('newCustomer.html')
@@ -116,30 +112,29 @@ def product(product_id):
 @app.route("/product/<int:product_id>/addToCart", methods = ['POST'])
 def addToCart(product_id):
 	if 'id' not in login_session:
-		flash("You must be logged in to perform this action")
+		flash("login to perform this action")
 		return redirect(url_for('login'))
 	quantity = request.form['quantity']
 	product = session.query(Product).filter_by(id=product_id).one()
 	shoppingCart = session.query(ShoppingCart).filter_by(customer_id=login_session['id']).one()
-	# If this item is already in the shopping cart, just update the quantity
 	if product.name in [item.product.name for item in shoppingCart.products]:
 		assoc = session.query(ShoppingCartAssociation).filter_by(shoppingCart=shoppingCart) \
 			.filter_by(product=product).one()
 		assoc.quantity = int(assoc.quantity) + int(quantity)
-		flash("Successfully added to Shopping Cart")
+		flash("Successfully added to Shopping Cart!")
 		return redirect(url_for('shoppingCart'))
 	else:
 		a = ShoppingCartAssociation(product=product, quantity=quantity)
 		shoppingCart.products.append(a)
 		session.add_all([a, product, shoppingCart])
 		session.commit()
-		flash("Successfully added to Shopping Cart")
+		flash("Successfully added to Shopping Cart!")
 		return redirect(url_for('shoppingCart'))
 
 @app.route("/shoppingCart")
 def shoppingCart():
 	if 'id' not in login_session:
-		flash("You must be logged in to perform this action")
+		flash("login to perform this action")
 		return redirect(url_for('login'))
 	shoppingCart = session.query(ShoppingCart).filter_by(customer_id=login_session['id']).one()
 	return render_template('shoppingCart.html', shoppingCart=shoppingCart)
@@ -147,7 +142,7 @@ def shoppingCart():
 @app.route("/removeFromCart/<int:product_id>", methods = ['POST'])
 def removeFromCart(product_id):
 	if 'id' not in login_session:
-		flash("You must be logged in to perform this action")
+		flash("login to perform this action")
 		return redirect(url_for('login'))
 	shoppingCart = session.query(ShoppingCart).filter_by(customer_id=login_session['id']).one()
 	association = session.query(ShoppingCartAssociation).filter_by(shoppingCart=shoppingCart).filter_by(product_id=product_id).one()
@@ -222,6 +217,34 @@ def logout():
 	del login_session['id']
 	flash("Logged Out Successfully")
 	return redirect(url_for('inventory'))
+
+@app.route("/product/addphone", methods = ['POST'])
+def addPhone(product_id):
+	if 'id' not in login_session:
+		flash("login to perform this action")
+		return redirect(url_for('login'))
+	name = request.form['name']
+	description = request.form['description']
+	price = request.form['price']
+	year = request.form['year']
+	color = request.form['color']
+	brand = request.form['brand']
+
+	product = session.query(Product).filter_by(id=product_id).one()
+	addPhone = session.query(addphone).filter_by(customer_id=login_session['id']).one()
+	if product.name in [item.product.name for item in Product.name]:
+		assoc = session.query(product.filter_by(addphone = addPhone)
+			
+		assoc.quantity = int(assoc.quantity) + int(quantity)
+		flash("Successfully added!")
+		return redirect(url_for('inventory'))
+	else:
+		a = Product(name=name,brand=brand, year = year, price= price, color=color, description=description)
+		Product.name.append(a)
+		session.add_all([a, name, product])
+		session.commit()
+		flash("Successfully added!")
+		return redirect(url_for('inventory'))
 
 if __name__ == '__main__':
 	app.run(debug=True)
