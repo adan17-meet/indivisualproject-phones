@@ -22,6 +22,22 @@
 	  	{% endfor %}
 	</div>
 
+
+	<div class="customer">
+		{% for customer in customers %}
+	   	<a href={{url_for('profile', customer_id = customer.id)}}>
+	      	<p>{{customer.name}}</p>
+	      	<table style="width:100%">
+	      	<tr> 
+	      		<td>	<p> {{customer.address}} </p>
+						
+				</td>
+			</tr>
+			</table>
+	  	</a>
+	  	{% endfor %}
+	</div>
+
 {% endif %}
 {% endblock %}
 </body>

@@ -135,7 +135,7 @@ def addToCart(product_id):
 @app.route("/shoppingCart")
 def shoppingCart():
 	if 'id' not in login_session:
-		flash("login to perform this action")
+		flash("You must be logged in to perform this action")
 		return redirect(url_for('login'))
 	shoppingCart = session.query(ShoppingCart).filter_by(customer_id=login_session['id']).one()
 	return render_template('shoppingCart.html', shoppingCart=shoppingCart)
@@ -211,13 +211,21 @@ def confirmation(confirmation):
 @app.route('/logout')
 def logout():
 	if 'id' not in login_session:
-		flash("You must be logged in order to log out")
+		flash("You must be logged in")
 		return redirect(url_for('login'))
 	del login_session['name']
 	del login_session['email']
 	del login_session['id']
 	flash("Logged Out Successfully")
 	return redirect(url_for('inventory'))
+
+@app.route('/profile')
+def profile():
+	if 'id' not in login_session:
+		flash("You must be logged in")
+		return redirect(url_for('login'))
+	customer = session.query(Customer).all()
+	return render_template('profile.html', customer = customer)
 
 #@app.route("/product/addphone", methods = ['POST'])
 #def addPhone(product_id):
